@@ -16,53 +16,43 @@ def input_to_pv(data):
     return positions, velocities
 
 def solve(positions, velocities, grid_dim):
-    quad_count = [0]*4
-    quads = [[],[],[],[]]
 
-    def add_to_quad(pos):
+    def quad_score(t):
         i = -1
         j = -1
-        if 0 <= pos[0] < grid_dim[0]//2:
-            i = 0
-        elif grid_dim[0]//2 < pos[0]:
-            i = 1
-        if 0 <= pos[1] < grid_dim[1]//2:
-            j = 0
-        elif grid_dim[1]//2 < pos[1]: 
-            j = 1
-        
-        if i in [0,1] and j in [0,1]:
-            quad_count[i+2*j] += 1
-            quads[i+2*j].append(pos)
-
-    for i in range(len(positions)):
-        new_pos = [(positions[i][0]+100*velocities[i][0]) % grid_dim[0],(positions[i][1]+100*velocities[i][1]) % grid_dim[1]]
-        add_to_quad(new_pos)
-
-    ans = 1
-    for c in quad_count:
-        ans *= c
-
-    t = 0
-    positions_t = [pos[:] for pos in positions]
-    def check_tree(points):
-        max_in_a_row = 1
-        for p in points:
-            in_a_row = 1
-            while [p[0]+in_a_row,p[1]] in points:
-                in_a_row += 1
-            max_in_a_row = max(max_in_a_row,in_a_row)
-        
-        if max_in_a_row > 10:
-            return True
-        return False
-
-    while not check_tree(positions_t):
-        t += 1
-        positions_t = []
+        quad_count = [0]*4
+        ans = 1
         for i in range(len(positions)):
-            positions_t.append([(positions[i][0]+t*velocities[i][0]) % grid_dim[0],(positions[i][1]+t*velocities[i][1]) % grid_dim[1]])
-    return ans, t  
+            pos = [(positions[i][0]+t*velocities[i][0]) % grid_dim[0],(positions[i][1]+t*velocities[i][1]) % grid_dim[1]]
+            if 0 <= pos[0] < grid_dim[0]//2:
+                i = 0
+            elif grid_dim[0]//2 < pos[0]:
+                i = 1
+            if 0 <= pos[1] < grid_dim[1]//2:
+                j = 0
+            elif grid_dim[1]//2 < pos[1]: 
+                j = 1
+            
+            if i in [0,1] and j in [0,1]:
+                quad_count[i+2*j] += 1
+        
+        for c in quad_count:
+            ans *= c
+        
+        return ans
+    
+    t = 0
+    scores = [quad_score(t)]
+    min_score = scores[0]
+    MAX_TIME = 10000
+    while t <= MAX_TIME:
+        t += 1
+        new_score = quad_score(t)
+        if new_score < min_score:
+            min_score = new_score
+            min_t = t
+        scores.append(new_score)
+    return scores[100], min_t
 
 test_data = """p=0,4 v=3,-3
 p=6,3 v=-1,-3
