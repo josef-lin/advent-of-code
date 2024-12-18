@@ -113,10 +113,16 @@ corrupted = string_to_mat(data)
 print(corrupted)
 print(print_grid(corrupted[:1024]))
 path, cost = search(corrupted[:1024])
-for i in range(1024,len(corrupted)):
-    if corrupted[i] not in path:
-        path, cost = search(corrupted[:i])
-        if not path:
-            print(corrupted[i-1])
-            break
+lower, higher = 1024, len(corrupted)
+guess = (higher+lower)//2 
+while lower < guess < higher:
+    path, cost = search(corrupted[:guess])
+    if not path:
+        higher = guess
+    else:
+        lower = guess
+    guess = (higher+lower)//2
+    
+print(lower, guess, higher)
+print(corrupted[lower])
 print("--- %s seconds ---" % (time.time() - start_time))
